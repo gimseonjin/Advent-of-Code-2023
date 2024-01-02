@@ -47,33 +47,33 @@ class Game {
   }
 }
 
+class Parser {
+  constructor() {}
+
+  static parseLineToGame(line: string): Game {
+    const gameRegex = new RegExp("Game\\s+(\\d+)");
+    const gameMatch = line.match(gameRegex);
+    const id = Number(gameMatch![1]);
+    const game = new Game(id, 0, 0, 0);
+
+    const sections = line.split(";");
+
+    sections.forEach(section => {
+      ["blue", "red", "green"].forEach(color => {
+        const colorRegex = new RegExp(`(\\d+) ${color}`);
+        const colorMatch = section.match(colorRegex);
+
+        game.set(color, colorMatch ? parseInt(colorMatch[1]) : 0);
+      });
+    });
+
+    return game;
+  }
+}
+
 async function main() {
   const result = (await readFileLines(__dirname, "input.txt"))
-    .map((line) => {
-      const regex = new RegExp("Game\\s+(\\d+)");
-      const match = line.match(regex);
-
-      const id = Number(match![1]);
-
-      return {
-        str: line,
-        game: new Game(id, 0, 0, 0),
-      };
-    })
-    .map(({ str, game }) => {
-      const sections = str.split(";");
-
-      sections.forEach((section) => {
-        ["blue", "red", "green"].forEach((color) => {
-          const regex = new RegExp(`(\\d+) ${color}`);
-          const match = section.match(regex);
-
-          game.set(color, match ? parseInt(match[1]) : 0);
-        });
-      });
-
-      return game;
-    })
+    .map((line) => Parser.parseLineToGame(line))
     .reduce((accumulator, game) => accumulator + game.calculateSumOfMinimumPowerSets(), 0);
 
   console.log(result);
